@@ -1,0 +1,9 @@
+{
+  "name": "@grancalavera/skills",
+  "version": "0.1.0",
+  "description": "Personal agent skills collection",
+  "keywords": ["pi-package"],
+  "pi": {
+    "skills": ["./skills"]
+  }
+}
