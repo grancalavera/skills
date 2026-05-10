@@ -2,3 +2,8 @@
 python = "3.13"
 uv = "latest"
 node = "lts"
+"pipx:skills-ref" = "latest"
+
+[tasks.validate]
+description = "Validate all skills using skills-ref"
+run = "for skill in ./skills/*/; do agentskills validate \"$skill\" || exit 1; done"

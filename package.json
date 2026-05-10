@@ -2,9 +2,6 @@
   "name": "@grancalavera/skills",
   "version": "0.1.0",
   "description": "Personal agent skills collection",
-  "scripts": {
-    "validate": "npx skills-ref validate ./skills/*"
-  },
   "keywords": ["pi-package"],
   "pi": {
     "skills": ["./skills"]
