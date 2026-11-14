@@ -31,6 +31,8 @@ A file shows in its parent directory with the file hovered; a directory opens it
 - **New split as fallback**: when no yazi answers, the script calls the `ghostty` skill's `open-split.sh` to open a new split on the right running yazi with the tty-derived client ID.
 - **Forced new split**: when the user asks for a new pane ("yazi this in a new pane"), pass `--new` to skip reuse.
 
+Done when the script exits 0. Reply in one line with the path.
+
 ## Client ID scheme
 
 A yazi answers only when it started with `--client-id` set to `9000` followed by the digits of its own tty name (`/dev/ttys004` → `9000004`):
@@ -40,8 +42,6 @@ yazi --client-id "9000$(tty | tr -cd '0-9')"
 ```
 
 The script's own splits and the `y` shell wrapper from the `install-yazi` skill both start yazi this way. Any yazi started without this ID (plain `yazi`, or another wrapper) isn't reused; the skill opens a new split instead. If the user asks why, point them to the `y` wrapper in `install-yazi`.
-
-Done when the script exits 0. Reply in one line with the path.
 
 ## Exit codes
 
