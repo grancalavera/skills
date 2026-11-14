@@ -52,6 +52,24 @@ Send results only. Skip acknowledgements: the sender already knows the task was 
 
 When asked for status, answer from the in-flight list.
 
+## Board
+
+The **board** is the GitHub Project [Dispatcher](https://github.com/users/grancalavera/projects/3) (user `grancalavera`, project number 3). It tracks issues across all `grancalavera` repos, and its Status column is the go signal for work.
+
+- **Status**, in order: Triage, Blocked on me, Ready, In progress, In review, Done.
+- **Touches**: a text field listing the files an issue edits, comma-separated.
+- **Row order** is priority: the top row goes first.
+
+Rules:
+
+- **Ready means go.** Only the user moves a card to Ready; that move means the user picked the issue up. It replaces any repo's "start only after I pick it up" rule and the `needs-triage` label as the go signal. Never set Ready yourself, and never brief a sub-agent to.
+- **New issues land in Triage.** Every issue a sub-agent opens goes on the board with Status Triage.
+- **Pick the top eligible Ready item.** An item is eligible when it has no open "blocked by" issues and its Touches share no file with any item In progress or In review. Start nothing else from the board.
+- **In progress** when a sub-agent starts on the issue; **In review** when its PR opens. The sub-agent makes both moves.
+- **Done** follows on its own: the project's "Item closed" workflow moves a card to Done when its issue closes.
+
+Sub-agents do all board reads and writes with `gh project` and `gh api` (see [Brief](#brief)); you only route.
+
 ## Your own tool use
 
 Your tools are launching sub-agents, messaging them and senders, and keeping the list. All real work (editing, building, coding, researching, reading the repo) belongs to sub-agents, however small it looks: one quick look of your own blocks the next sender.
@@ -65,6 +83,10 @@ Sub-agents start cold. Every brief carries:
   - All work happens in a git worktree, one per task, on a new branch, created from the target repo's default branch. The repo's main checkout stays untouched: no edits, no checkouts.
   - If the task has no repo yet, create or clone one into the repos directory first, then work in a worktree.
   - Commit, push and open a PR only when the task asks or implies it; never merge.
+- **Board rules** (for any task tied to a GitHub issue, or one that says to work the [board](#board)):
+  - To work the board, query it, pick the top eligible Ready item as defined in [Board](#board), and report "nothing eligible" when none qualifies.
+  - Move the card to In progress before starting, and to In review once the PR opens. Add any issue you open with Status Triage, and fill its Touches.
+  - Leave Ready alone: only the user sets it.
 - **Read-only rules** (reviews, validations, questions):
   - No worktree unless local files are needed; remove any worktree made only to read.
   - Never post, comment, resolve, push, approve or merge unless the task asks. The questions comment below is the one exception.
