@@ -1,6 +1,6 @@
 ---
 name: install-yazi
-description: Writes an idempotent install script for yazi, the terminal file manager, on macOS using Homebrew. It includes every optional dependency yazi uses to preview different file types, taken from yazi's current online docs. Use this whenever the user wants to install, set up, or reinstall yazi on a Mac, asks for a yazi install script, or wants yazi's preview/rendering dependencies installed through brew, even if they don't say "script".
+description: Writes an idempotent install-or-upgrade script for yazi, the terminal file manager, on macOS using Homebrew. It includes every optional dependency yazi uses to preview different file types, taken from yazi's current online docs. Use this whenever the user wants to install, set up, upgrade, or reinstall yazi on a Mac, asks for a yazi install script, or wants yazi's preview/rendering dependencies installed through brew, even if they don't say "script".
 compatibility: macOS with Homebrew. Needs web access to read yazi's installation documentation.
 ---
 
@@ -20,8 +20,10 @@ yazi's documentation says right now.
    list changes over time, so treat what the docs say today as the source of truth.
 3. **Update Homebrew first.** This is the script's first action. If Homebrew isn't
    installed, stop at once with a clear message.
-4. **Install only what's missing.** For yazi and for each dependency, check whether it's
-   already installed. Install it only if it isn't, and say which case applied.
+4. **Install what's missing, upgrade what's outdated.** For yazi and for each dependency,
+   check its state. Install it if it's missing, upgrade it if it's outdated, and leave it
+   alone if it's current. Say which case applied. Upgrade only these packages, not
+   everything else the user has installed.
 5. **Hand over the script.** When the script is written, show the user the command to
    open it in `bat`, and copy that command to the clipboard (on macOS, through the system
    clipboard utility).
@@ -48,6 +50,7 @@ package manager's documented, stable commands rather than reading its internal f
 
 - The script exists at a temporary path and covers every dependency the docs currently
   list.
+- yazi and every dependency end up installed and up to date.
 - Running it a second time changes nothing and reports each step as already done.
 - The user has seen the `bat` command for the script, and that command is on their
   clipboard.
