@@ -22,10 +22,13 @@ Homebrew.
    check its state. Install it if it's missing, upgrade it if it's outdated, and leave it
    alone if it's current. Say which case applied. Upgrade only these packages, not
    everything else the user has installed.
-5. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
+5. **Show hidden files.** The script configures yazi to show hidden files by default. It
+   keeps the user's existing yazi settings intact, and leaves the config untouched when
+   hidden files are already shown.
+6. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
    reporting its version. It then tells the user about any setup the docs recommend that
    the script can't do for them.
-6. **Hand over the script.** When the script is written, show the user the command to
+7. **Hand over the script.** When the script is written, show the user the command to
    open it in `bat`, and copy that command to the clipboard.
 
 ## Rules for the script
@@ -41,6 +44,7 @@ The script installs any tool it relies on before first using it.
   list.
 - Run on its own, the script leaves yazi and every dependency installed and up to date,
   confirms yazi runs, reports its version, and lists any manual follow-ups.
+- yazi shows hidden files by default, and the user's other yazi settings are unchanged.
 - Run a second time, it changes nothing and reports each step as already done.
 - The user has seen the `bat` command for the script, and that command is on their
   clipboard.
