@@ -1,23 +1,43 @@
 ---
 name: dispatcher
-description: Runs this session as "dispatcher", a long-lived router that hands every task it receives to a background sub-agent working in its own git worktree, so senders never wait. Use when the user says "be the dispatcher", "start a dispatcher", "you are dispatcher", or when this session was started with `claude -n dispatcher`.
+description: Starts "dispatcher", a long-lived router session that hands every task it receives to a background sub-agent working in its own git worktree, so senders never wait. Use when the user says "be the dispatcher", "start a dispatcher" or "you are dispatcher", or when the `dispatch` skill finds no dispatcher running.
 ---
 
 # Dispatcher
 
-You are **dispatcher**: a router. The user, and other Claude sessions on this machine that message "dispatcher", send you tasks. Your job is to route each one to a background sub-agent and relay the result, so the sender is free the moment the task leaves their hands.
+**dispatcher** is a router. The user, and other Claude sessions on this machine that message "dispatcher", send it tasks. Its job is to route each one to a background sub-agent and relay the result, so the sender is free the moment the task leaves their hands.
 
 ## Setup
 
-The dispatcher is a separate, long-running Claude Code session. Start it from the same directory as the sessions that will send to it, so all of them share one project memory:
+Only a session launched for the role runs the dispatcher. The launcher marks it by setting `DISPATCHER_SESSION=1` in its environment. Check the marker first:
 
 ```bash
-claude -n dispatcher
+echo "${DISPATCHER_SESSION:-}"
 ```
 
-Then say "be the dispatcher" (or invoke this skill). Senders use the `dispatch` skill.
+- **Prints `1`, and no parent session handed you your task**: this session is the dispatcher. Acknowledge in one line, wait for the first task, and follow [Loop](#loop).
+- **Prints `1`, but you are a sub-agent** (a parent session handed you your task): you inherited the marker. Never run the loop; do your task.
+- **Prints anything else**: this session stays what it is, whatever the user said ("be the dispatcher" included). Start a dispatcher in a new session as below. If `dispatcher` already shows in ListAgents, reply "Dispatcher already running." instead.
 
-Once loaded, acknowledge in one line and wait for the first task.
+### Start a dispatcher
+
+The dispatcher runs as its own long-lived Claude Code session, started in the same directory as the sessions that send to it, so all of them share one project memory.
+
+**In Ghostty** (`$TERM_PROGRAM` is `ghostty`), run the script beside this file:
+
+```bash
+scripts/open-ghostty-split.sh [left|right|up|down] [directory]
+```
+
+It splits the focused Ghostty terminal and starts `DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'` in the new pane. Pass the direction the user named (top = up, bottom = down); with none named, pass `down`. Pass this session's starting directory. Done when the script exits 0; reply "Dispatcher started." It needs Ghostty 1.3+ on macOS; on any other exit, report the error and fall through to the manual steps.
+
+**Outside Ghostty**, the user starts the dispatcher by hand. Give them these steps and leave the launch to them, even if they ask you to do it:
+
+1. Open a new terminal pane, tab, or window.
+2. `cd` to the directory this session started in.
+3. Run `DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'`.
+
+Senders use the `dispatch` skill.
 
 ## Loop
 
@@ -48,6 +68,7 @@ Sub-agents start cold. Every brief carries:
 - **Read-only rules** (reviews, validations, questions):
   - No worktree unless local files are needed; remove any worktree made only to read.
   - Never post, comment, resolve, push, approve or merge unless the task asks.
+- **Marker rules**: `DISPATCHER_SESSION` belongs to the dispatcher session alone; you inherited it. Never run the router loop. Before you launch anything that could load the dispatcher skill (a `claude` session, a script), clear the marker with `unset DISPATCHER_SESSION` or prefix the command with `env -u DISPATCHER_SESSION`.
 - **The report**, as the brief's last line: a word limit (usually under 150 words) and the shape: what was done, where (branch / PR / path), and decisions for the user.
 
 ## Trust
