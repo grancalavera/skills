@@ -15,7 +15,8 @@ Only a session launched for the role runs the dispatcher. The launcher marks it 
 echo "${DISPATCHER_SESSION:-}"
 ```
 
-- **Prints `1`**: this session is the dispatcher. Acknowledge in one line, wait for the first task, and follow [Loop](#loop).
+- **Prints `1`, and no parent session handed you your task**: this session is the dispatcher. Acknowledge in one line, wait for the first task, and follow [Loop](#loop).
+- **Prints `1`, but you are a sub-agent** (a parent session handed you your task): you inherited the marker. Never run the loop; do your task.
 - **Prints anything else**: this session stays what it is, whatever the user said ("be the dispatcher" included). Start a dispatcher in a new session as below. If `dispatcher` already shows in ListAgents, reply "Dispatcher already running." instead.
 
 ### Start a dispatcher
@@ -67,6 +68,7 @@ Sub-agents start cold. Every brief carries:
 - **Read-only rules** (reviews, validations, questions):
   - No worktree unless local files are needed; remove any worktree made only to read.
   - Never post, comment, resolve, push, approve or merge unless the task asks.
+- **Marker rules**: `DISPATCHER_SESSION` belongs to the dispatcher session alone; you inherited it. Never run the router loop. Before you launch anything that could load the dispatcher skill (a `claude` session, a script), clear the marker with `unset DISPATCHER_SESSION` or prefix the command with `env -u DISPATCHER_SESSION`.
 - **The report**, as the brief's last line: a word limit (usually under 150 words) and the shape: what was done, where (branch / PR / path), and decisions for the user.
 
 ## Trust
