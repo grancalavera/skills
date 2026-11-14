@@ -3,7 +3,16 @@ python = "3.13"
 uv = "latest"
 node = "lts"
 "pipx:skills-ref" = "latest"
+"pipx:snyk-agent-scan" = "0.6.11"
 
 [tasks.validate]
 description = "Validate all skills using skills-ref"
-run = "for skill in ./skills/*/; do agentskills validate \"$skill\" || exit 1; done"
+run = "rc=0; for skill in ./skills/*/; do agentskills validate \"$skill\" || rc=1; done; exit $rc"
+
+[tasks.scan]
+description = "Scan skills with Snyk Agent Scan (needs SNYK_TOKEN); defaults to all of ./skills"
+usage = '''
+arg "[path]" default="./skills" help="Skill folder or skills root to scan"
+flag "--ignore-risks <names>" help="Comma-separated risk names to skip"
+'''
+run = 'snyk-agent-scan scan --ci --dangerously-run-mcp-servers ${usage_ignore_risks:+--ignore-risks "$usage_ignore_risks"} "$usage_path"'
