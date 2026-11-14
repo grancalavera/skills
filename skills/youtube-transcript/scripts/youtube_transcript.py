@@ -284,12 +284,12 @@ def main() -> None:
         _error_exit(f"Failed to access YouTube for video '{video_id}': {e}")
 
     try:
-        api_key = _extract_innertube_api_key(html, video_id)
+        innertube_key = _extract_innertube_api_key(html, video_id)
     except Exception as e:
         _error_exit(str(e))
 
     try:
-        player_data = _fetch_innertube_player(opener, video_id, api_key)
+        player_data = _fetch_innertube_player(opener, video_id, innertube_key)
     except Exception as e:
         _error_exit(f"Failed to fetch video data for '{video_id}': {e}")
 
