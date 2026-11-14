@@ -7,8 +7,9 @@ node = "lts"
 
 [tasks.validate]
 description = "Validate all skills using skills-ref"
-run = "for skill in ./skills/*/; do agentskills validate \"$skill\" || exit 1; done"
+run = "rc=0; for skill in ./skills/*/; do agentskills validate \"$skill\" || rc=1; done; exit $rc"
 
 [tasks.scan]
-description = "Scan all skills with Snyk Agent Scan (needs SNYK_TOKEN)"
-run = "snyk-agent-scan scan --ci --dangerously-run-mcp-servers ./skills"
+description = "Scan skills with Snyk Agent Scan (needs SNYK_TOKEN); defaults to all of ./skills"
+usage = 'arg "[path]" default="./skills" help="Skill folder or skills root to scan"'
+run = 'snyk-agent-scan scan --ci --dangerously-run-mcp-servers "$usage_path"'

@@ -16,11 +16,26 @@ jobs:
       - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
       - run: mise run validate
 
-  agent-scan:
+  list-skills:
     runs-on: ubuntu-latest
+    outputs:
+      skills: ${{ steps.list.outputs.skills }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: list
+        run: echo "skills=$(ls -d skills/*/ | xargs -n1 basename | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
+
+  agent-scan:
+    needs: list-skills
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        skill: ${{ fromJSON(needs.list-skills.outputs.skills) }}
+    name: agent-scan (${{ matrix.skill }})
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
-      - run: mise run scan
+      - run: mise run scan "skills/${{ matrix.skill }}"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
