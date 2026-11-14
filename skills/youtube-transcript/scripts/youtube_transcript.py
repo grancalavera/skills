@@ -1,21 +1,21 @@
-"""Fetch a YouTube transcript into a quarantine file and print a JSON digest.
+"""Save a YouTube transcript as a Markdown note and print a JSON digest.
 
 Zero external dependencies — uses only Python stdlib (urllib, json, re, xml.etree, html).
 Uses YouTube's InnerTube API to fetch captions URLs and video metadata.
 
-Video creators write the transcript, title, and channel, so the script keeps that
-text out of stdout. It writes them to a quarantine file instead:
-- It screens them for instruction-like text (prompt injection) and redacts matches.
-- It wraps them in <untrusted_transcript> markers.
+Video creators write the transcript, title, and channel. The script writes that
+text straight into the note file and keeps it out of stdout, so no agent reads it:
+- It screens the text for instruction-like passages (prompt injection) and redacts them.
+- It wraps the transcript in <untrusted_transcript> markers.
 - It asks YouTube for an English translation when no English track exists.
 
 Usage: youtube_transcript.py <youtube_url> [--out PATH]
-- Without --out, the quarantine file goes in a fresh private temp directory.
-- With --out, the script writes it to PATH (for saving a verbatim transcript).
+- With --out, the script writes the note to PATH.
+- Without --out, the note goes in a fresh private temp directory.
 
 stdout carries only script-generated, format-checked fields, ALWAYS as one JSON object:
 - On success: { "video_id", "published_date", "language", "original_language",
-  "is_english", "translated", "characters", "warnings", "transcript_file" }
+  "is_english", "translated", "characters", "warnings", "note_file" }
 - On failure: { "error": "<description>" }
 
 Exit codes:
@@ -330,22 +330,24 @@ def _safe(value: str, pattern: re.Pattern, fallback: str) -> str:
     return value if pattern.match(value or "") else fallback
 
 
-def write_quarantine(path: str, video_id: str, title: str, channel: str,
-                     transcript: str) -> str:
-    """Write the creator-written text, wrapped as data, to a private file."""
+def write_note(path: str, meta: dict, warnings: list[str], transcript: str) -> str:
+    """Write a Markdown note: script-checked frontmatter, then the wrapped transcript."""
+    mode = 0o666
     if not path:
         path = os.path.join(
-            tempfile.mkdtemp(prefix="youtube-transcript-"), f"{video_id}.txt"
+            tempfile.mkdtemp(prefix="youtube-transcript-"), f"{meta['video_id']}.md"
         )
+        mode = 0o600
     path = os.path.abspath(os.path.expanduser(path))
+    # json.dumps yields valid YAML scalars, so creator text cannot break the frontmatter.
+    front = "\n".join(f"{k}: {json.dumps(v, ensure_ascii=False)}" for k, v in meta.items())
+    notes = "".join(f"> [!warning] {w}\n" for w in warnings)
     body = (
-        f"{TRANSCRIPT_OPEN}\n"
-        f"Title: {title}\n"
-        f"Channel: {channel}\n\n"
-        f"{transcript}\n"
-        f"{TRANSCRIPT_CLOSE}\n"
+        f"---\n{front}\n---\n\n"
+        f"{notes}{chr(10) if notes else ''}"
+        f"{TRANSCRIPT_OPEN}\n{transcript}\n{TRANSCRIPT_CLOSE}\n"
     )
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(body)
     return path
@@ -446,21 +448,32 @@ def main() -> None:
             f"The transcript is unusually long ({len(transcript):,} characters)."
         )
 
+    published_date = _safe(metadata["published_date"], DATE_RE, "")
+    note_meta = {
+        "title": title,
+        "channel": channel,
+        "url": f"https://www.youtube.com/watch?v={video_id}",
+        "video_id": video_id,
+        "published_date": published_date,
+        "language": language,
+        "original_language": original_language,
+        "translated": translated,
+    }
     try:
-        transcript_file = write_quarantine(out_path, video_id, title, channel, transcript)
+        note_file = write_note(out_path, note_meta, warnings, transcript)
     except OSError as e:
-        _error_exit(f"Failed to write the transcript file: {e}")
+        _error_exit(f"Failed to write the note file: {e}")
 
     result = {
         "video_id": video_id,
-        "published_date": _safe(metadata["published_date"], DATE_RE, ""),
+        "published_date": published_date,
         "language": language,
         "original_language": original_language,
         "is_english": is_english,
         "translated": translated,
         "characters": len(transcript),
         "warnings": warnings,
-        "transcript_file": transcript_file,
+        "note_file": note_file,
     }
 
     print(json.dumps(result, ensure_ascii=False), flush=True)
