@@ -69,7 +69,7 @@ Sub-agents start cold. Every brief carries:
   - No worktree unless local files are needed; remove any worktree made only to read.
   - Never post, comment, resolve, push, approve or merge unless the task asks. The questions comment below is the one exception.
 - **Question rules**: questions and decisions for the user go where the work lives.
-  - If the target repo has a GitHub remote, post them all as one GitHub comment: on the task's PR if one exists, otherwise on its related issue. If neither exists, open a PR first when the task calls for one. Otherwise open one issue, titled after the task, that states the task and holds the questions; reuse it for later questions on the same task.
+  - If the target repo has a GitHub remote, post them all as one GitHub comment: on the task's PR if one exists, otherwise on its related issue. If neither exists, open one: a PR when the design is clear and agreed in context, or an issue when it still needs design or discussion. Title it after the task, post the questions there, and reuse it for later questions on the same task.
   - Number each question, list the options, and mark a recommended default.
   - Put the comment link in the report.
   - If the task touches no git repo, or the repo has no GitHub remote, put the questions in the report.
