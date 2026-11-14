@@ -43,10 +43,27 @@ Homebrew.
    `ya pack -a` and `[[manager.prepend_keymap]]` forms. In the follow-ups, tell the user
    that `T` toggles the preview between full screen and normal, and that `max-current`
    or `max-parent` maximize the other panes instead.
-7. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
+7. **Add the `y` shell wrapper.** Take yazi's documented `y` wrapper (it changes the
+   shell's directory to yazi's on exit) from the docs, and add one change: yazi starts
+   with a client ID derived from the terminal's tty, so the `yazi` skill can find and
+   reuse it:
+
+   ```sh
+   yazi "$@" --client-id "9000$(tty | tr -cd '0-9')" --cwd-file="$tmp"
+   ```
+
+   The ID is `9000` followed by the tty name's digits (`/dev/ttys004` → `9000004`). Keep
+   it identical to the `yazi` skill's Client ID scheme. Write the wrapper to the user's
+   shell rc file (`~/.zshrc` for zsh, `~/.bashrc` for bash) between
+   `# >>> yazi y wrapper >>>` and `# <<< yazi y wrapper <<<` marker lines. Skip it when
+   the markers already exist. When the rc file already defines `y` outside the markers,
+   leave it alone and tell the user to add the `--client-id` flag themselves. In the
+   follow-ups, tell the user to open a new shell or `source` the rc file, then start
+   yazi with `y`.
+8. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
    reporting its version. It then tells the user about any setup the docs recommend that
    the script can't do for them.
-8. **Hand over the script.** When the script is written, show the user the command to
+9. **Hand over the script.** When the script is written, show the user the command to
    open it in `bat`, and copy that command to the clipboard.
 
 ## Invariant
@@ -72,6 +89,8 @@ The script installs any tool it relies on before first using it.
 - yazi shows hidden files by default, and the user's other yazi settings are unchanged.
 - The `toggle-pane` plugin is installed, and `T` maximizes or restores the preview pane
   through exactly one keymap entry.
+- The shell rc file holds exactly one `y` wrapper block, starting yazi with the
+  tty-derived client ID, unless the user already had their own `y`.
 - Run a second time, it changes nothing and reports each step as already done.
 - The user has seen the `bat` command for the script, and that command is on their
   clipboard.
