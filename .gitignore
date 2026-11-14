@@ -10,3 +10,6 @@ __pycache__/
 
 # Archives
 *.zip
+
+# Skill eval workspaces
+obsidian-vault-workspace/
