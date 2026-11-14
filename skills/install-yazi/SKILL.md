@@ -28,21 +28,28 @@ Homebrew.
 6. **Add a key to maximize the preview pane.** yazi has no built-in key for this, so the
    script installs the official `toggle-pane` plugin with
    `ya pkg add yazi-rs/plugins:toggle-pane`. It skips the install if the plugin is
-   already there. It then binds `T` in `~/.config/yazi/keymap.toml`:
+   already there. It then binds `e` ("expand") in `~/.config/yazi/keymap.toml`; `e` is
+   free in yazi's default keymap and needs no Shift:
 
    ```toml
    [[mgr.prepend_keymap]]
-   on   = "T"
+   on   = "e"
    run  = "plugin toggle-pane max-preview"
    desc = "Maximize or restore the preview pane"
    ```
 
-   The script adds this entry only if no `T` binding for `toggle-pane` exists yet, and
-   keeps the rest of the keymap intact. Homebrew installs the current yazi, so target the
-   current `ya pkg` command and `[[mgr.prepend_keymap]]` table, not the older
-   `ya pack -a` and `[[manager.prepend_keymap]]` forms. In the follow-ups, tell the user
-   that `T` toggles the preview between full screen and normal, and that `max-current`
-   or `max-parent` maximize the other panes instead.
+   The script checks for a `toggle-pane max-preview` binding on any key, and keeps the
+   rest of the keymap intact:
+   - **None**: add the `e` entry.
+   - **On `T`** (from an earlier version of this script): change its `on` to `"e"` and
+     report the migration.
+   - **On `e` or any other key**: leave it alone and report it as already done.
+
+   Homebrew installs the current yazi, so target the current `ya pkg` command and
+   `[[mgr.prepend_keymap]]` table, not the older `ya pack -a` and
+   `[[manager.prepend_keymap]]` forms. In the follow-ups, tell the user that `e` (or the
+   key they already had) toggles the preview between full screen and normal, and that
+   `max-current` or `max-parent` maximize the other panes instead.
 7. **Add the `y` shell wrapper.** Take yazi's documented `y` wrapper (it changes the
    shell's directory to yazi's on exit) from the docs, and add one change: yazi starts
    with a client ID derived from the terminal's tty, so the `yazi` skill can find and
@@ -87,8 +94,8 @@ The script installs any tool it relies on before first using it.
 - Run on its own, the script leaves yazi and every dependency installed and up to date,
   confirms yazi runs, reports its version, and lists any manual follow-ups.
 - yazi shows hidden files by default, and the user's other yazi settings are unchanged.
-- The `toggle-pane` plugin is installed, and `T` maximizes or restores the preview pane
-  through exactly one keymap entry.
+- The `toggle-pane` plugin is installed, and `e` (or the key the user already had)
+  maximizes or restores the preview pane through exactly one keymap entry.
 - The shell rc file holds exactly one `y` wrapper block, starting yazi with the
   tty-derived client ID, unless the user already had their own `y`.
 - Run a second time, it changes nothing and reports each step as already done.
