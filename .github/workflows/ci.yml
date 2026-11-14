@@ -32,16 +32,10 @@ jobs:
       fail-fast: false
       matrix:
         skill: ${{ fromJSON(needs.list-skills.outputs.skills) }}
-        include:
-          # youtube-transcript reads third-party transcripts by design. Ignore
-          # that one risk for this skill only, until transcript screening lands:
-          # https://github.com/grancalavera/skills/issues/13
-          - skill: youtube-transcript
-            ignore_risks: third_party_content_exposure
     name: agent-scan (${{ matrix.skill }})
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
-      - run: mise run scan --ignore-risks "${{ matrix.ignore_risks }}" "skills/${{ matrix.skill }}"
+      - run: mise run scan "skills/${{ matrix.skill }}"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
