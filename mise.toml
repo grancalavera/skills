@@ -11,4 +11,4 @@ run = "for skill in ./skills/*/; do agentskills validate \"$skill\" || exit 1; d
 
 [tasks.scan]
 description = "Scan all skills with Snyk Agent Scan (needs SNYK_TOKEN)"
-run = "snyk-agent-scan scan --ci ./skills"
+run = "snyk-agent-scan scan --ci --dangerously-run-mcp-servers ./skills"
