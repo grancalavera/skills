@@ -7,8 +7,7 @@ compatibility: macOS with Homebrew. Needs web access to read yazi's installation
 # Install yazi
 
 Write a shell script that installs yazi and all of its file-preview dependencies with
-Homebrew. You write the script yourself, based on the requirements below and on what
-yazi's documentation says right now.
+Homebrew.
 
 ## Requirements
 
@@ -16,41 +15,32 @@ yazi's documentation says right now.
    the user asks you to.
 2. **Read the docs when you run, not from memory.** Open yazi's online installation
    documentation. Take from it the current full list of dependencies yazi uses to preview
-   or render different file types, plus the Homebrew install steps it recommends. The
-   list changes over time, so treat what the docs say today as the source of truth.
-3. **Update Homebrew first.** This is the script's first action. If Homebrew isn't
-   installed, stop at once with a clear message.
+   or render different file types, plus the Homebrew install steps it recommends.
+3. **Check and update Homebrew.** Before changing anything, the script stops with a clear
+   message if Homebrew isn't installed. It updates Homebrew before installing anything.
 4. **Install what's missing, upgrade what's outdated.** For yazi and for each dependency,
    check its state. Install it if it's missing, upgrade it if it's outdated, and leave it
    alone if it's current. Say which case applied. Upgrade only these packages, not
    everything else the user has installed.
-5. **Hand over the script.** When the script is written, show the user the command to
-   open it in `bat`, and copy that command to the clipboard (on macOS, through the system
-   clipboard utility).
+5. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
+   reporting its version. It then tells the user about any setup the docs recommend that
+   the script can't do for them.
+6. **Hand over the script.** When the script is written, show the user the command to
+   open it in `bat`, and copy that command to the clipboard.
 
 ## Rules for the script
 
-**Make every step that changes the system safe to re-run.** Installs are not the only
-such steps. Any step the docs prescribe after installing (configuring, linking,
-activating, overwriting, and so on) also needs a check first: is it already in the
-desired state? Act only if it isn't. Never run a step that forces or overwrites
-something without a check, because a second run would undo changes the user may have
-made on purpose. On a second run, each step should report "already done" instead of
-repeating itself or printing noisy warnings.
+Every step that changes the system checks the current state first and acts only if
+needed, so a second run changes nothing and reports each step as already done.
 
-**Keep the script's own tools separate from the software's dependencies.** The software's
-dependencies are what yazi needs. The script's tools are what the script itself uses to
-do its work, such as parsing output or running checks. Check for the script's tools and
-install them at the start, before anything uses them. Don't count on one of them being
-installed along the way because it happens to be on yazi's dependency list: the order of
-the steps or the docs' list could change. To decide what state something is in, use the
-package manager's documented, stable commands rather than reading its internal files.
+The script installs any tool it relies on before first using it.
 
 ## Done when
 
 - The script exists at a temporary path and covers every dependency the docs currently
   list.
-- yazi and every dependency end up installed and up to date.
-- Running it a second time changes nothing and reports each step as already done.
+- Run on its own, the script leaves yazi and every dependency installed and up to date,
+  confirms yazi runs, reports its version, and lists any manual follow-ups.
+- Run a second time, it changes nothing and reports each step as already done.
 - The user has seen the `bat` command for the script, and that command is on their
   clipboard.
