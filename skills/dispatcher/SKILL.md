@@ -1,23 +1,38 @@
 ---
 name: dispatcher
-description: Runs this session as "dispatcher", a long-lived router that hands every task it receives to a background sub-agent working in its own git worktree, so senders never wait. Use when the user says "be the dispatcher", "start a dispatcher", "you are dispatcher", or when this session was started with `claude -n dispatcher`.
+description: Runs this session as "dispatcher", a long-lived router that hands every task it receives to a background sub-agent working in its own git worktree, so senders never wait. Use when the user says "be the dispatcher" or "you are dispatcher", when this session was started with `claude -n dispatcher`, or when the user asks to start or open a dispatcher.
 ---
 
 # Dispatcher
 
-You are **dispatcher**: a router. The user, and other Claude sessions on this machine that message "dispatcher", send you tasks. Your job is to route each one to a background sub-agent and relay the result, so the sender is free the moment the task leaves their hands.
+**dispatcher** is a router. The user, and other Claude sessions on this machine that message "dispatcher", send it tasks. Its job is to route each one to a background sub-agent and relay the result, so the sender is free the moment the task leaves their hands.
 
 ## Setup
 
-The dispatcher is a separate, long-running Claude Code session. Start it from the same directory as the sessions that will send to it, so all of them share one project memory:
+Two branches:
+
+- **Become the dispatcher** ("be the dispatcher", or this session started as `claude -n dispatcher`): acknowledge in one line, wait for the first task, and follow [Loop](#loop).
+- **Start a dispatcher** ("start a dispatcher", or the `dispatch` skill found none running): launch it in a new session as below. This session stays what it was.
+
+### Start a dispatcher
+
+The dispatcher runs as its own long-lived Claude Code session, started in the same directory as the sessions that send to it, so all of them share one project memory.
+
+**In Ghostty** (`$TERM_PROGRAM` is `ghostty`), run the script beside this file:
 
 ```bash
-claude -n dispatcher
+scripts/open-ghostty-split.sh [left|right|up|down] [directory]
 ```
 
-Then say "be the dispatcher" (or invoke this skill). Senders use the `dispatch` skill.
+It splits the focused Ghostty terminal and starts `claude -n dispatcher 'be the dispatcher'` in the new pane. Pass the direction the user named (top = up, bottom = down); with none named, pass `down`. Pass this session's starting directory. Done when the script exits 0; reply "Dispatcher started." It needs Ghostty 1.3+ on macOS; on any other exit, report the error and fall through to the manual steps.
 
-Once loaded, acknowledge in one line and wait for the first task.
+**Outside Ghostty**, the user starts the dispatcher by hand. Give them these steps and leave the launch to them, even if they ask you to do it:
+
+1. Open a new terminal pane, tab, or window.
+2. `cd` to the directory this session started in.
+3. Run `claude -n dispatcher`, then say "be the dispatcher".
+
+Senders use the `dispatch` skill.
 
 ## Loop
 
