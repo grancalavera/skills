@@ -31,6 +31,13 @@ Homebrew.
 7. **Hand over the script.** When the script is written, show the user the command to
    open it in `bat`, and copy that command to the clipboard.
 
+## Invariant
+
+The skill stays idempotent. Any requirement added to this skill must keep the script
+safe to rerun: a second run installs, upgrades, and writes nothing new, duplicates no
+config entries, and reports each step as already done. If a new requirement would break
+this, change the requirement, not the invariant.
+
 ## Rules for the script
 
 Every step that changes the system checks the current state first and acts only if
