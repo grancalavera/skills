@@ -1,5 +1,6 @@
 #!/bin/sh
 # Opens a Ghostty split next to the focused terminal and starts the dispatcher in it.
+# DISPATCHER_SESSION=1 marks the new session as the dispatcher; the skill checks it.
 # Usage: open-ghostty-split.sh [left|right|up|down|top|bottom] [directory]
 # Defaults: down, current directory. Needs Ghostty 1.3+ on macOS (AppleScript).
 set -eu
@@ -24,7 +25,7 @@ on run argv
   tell application "Ghostty"
     set cfg to new surface configuration
     set initial working directory of cfg to workDir
-    set initial input of cfg to "claude -n dispatcher 'be the dispatcher'" & linefeed
+    set initial input of cfg to "DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'" & linefeed
     set currentTerm to focused terminal of selected tab of front window
     if splitDirection is "left" then
       split currentTerm direction left with configuration cfg
