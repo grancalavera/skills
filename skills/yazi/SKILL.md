@@ -25,7 +25,10 @@ Run the script beside this file:
 scripts/open-yazi.sh <absolute-path>
 ```
 
-It calls the `ghostty` skill's `open-split.sh` to open a new split on the right running yazi. A file opens its parent directory with the file hovered; a directory opens itself. Every trigger opens a new split; the user closes it with `q`.
+A file shows in its parent directory with the file hovered; a directory opens itself.
+
+- **This terminal already has a live yazi pane**: the script moves that yazi to the path with `ya emit-to` and prints `reused yazi <id>`. Focus stays here.
+- **Otherwise**: it calls the `ghostty` skill's `open-split.sh` to open a new split on the right running `yazi --client-id <id>`, and records the ID in `~/.local/state/yazi-skill/<tty>`.
 
 Done when the script exits 0. Reply in one line with the path.
 
@@ -39,4 +42,4 @@ Done when the script exits 0. Reply in one line with the path.
 
 ## Testing
 
-`scripts/open-yazi.sh --dry-run <path>` prints the split it would open and opens nothing. Use it whenever you test.
+`scripts/open-yazi.sh --dry-run <path>` prints what it would do and changes nothing: no pane, no `ya emit-to`, no state file. Use it whenever you test.
