@@ -1,0 +1,60 @@
+{
+  "skill_name": "obsidian-vault",
+  "evals": [
+    {
+      "id": 0,
+      "name": "rename-note-preserves-links",
+      "prompt": "can you rename the note 'Field Notes' in my obsidian vault to 'Site Notes 2026'? the old name never fit",
+      "expected_output": "Uses `obsidian rename` (or `move`) so the app rewrites inbound links, rather than shell mv. Inbound links in Weekly Review / Inbox notes still resolve afterwards. Checks the active vault before writing.",
+      "files": [],
+      "assertions": [
+        "Renamed the note through the Obsidian CLI (`obsidian rename` or `obsidian move`) rather than a shell command",
+        "Never ran `mv`, `git mv` or equivalent on a file inside the vault",
+        "The note now exists as 'Site Notes 2026' and no 'Field Notes.md' remains",
+        "The inbound wikilink in Weekly Review.md was rewritten to the new name, leaving no dangling [[Field Notes]]",
+        "Checked which vault was active before making the change"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "orphans-via-resolved-graph",
+      "prompt": "are there any notes in my vault that nothing links to? curious how much has drifted loose",
+      "expected_output": "Uses `obsidian orphans` rather than grepping for wikilinks. Reports the list as an answer without turning it into an unprompted cleanup project.",
+      "files": [],
+      "assertions": [
+        "Used `obsidian orphans` to answer the question",
+        "Did not grep or ripgrep for wikilink text as the basis for the answer",
+        "Reported the specific unlinked notes back to the user",
+        "Left every vault file unmodified, as befits a read-only question",
+        "Presented the result as an answer rather than starting or pressing an unrequested cleanup"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "daily-append-vault-confirmation",
+      "prompt": "add a line to my daily note saying I finished the obsidian skill",
+      "expected_output": "Uses `obsidian daily:append` from this code repo without needing the vault path. Confirms which vault is active before writing, since the CLI is not scoped to the working directory.",
+      "files": [],
+      "assertions": [
+        "Used `obsidian daily:append` (or `daily:prepend`) rather than locating and editing the daily note by path",
+        "Verified which vault was active before writing to it",
+        "The daily note now contains a line about finishing the obsidian skill",
+        "Did not need the user to supply the vault path from inside this code repo",
+        "Did not present `vault=<name>` as a way to target a different vault, since it silently writes to the active one instead"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "in-place-edit-uses-file-tools",
+      "prompt": "there's a typo in my 'Forgotten Idea' note - it says 'seperate' where it should be 'separate'. can you fix it",
+      "expected_output": "Recognises the CLI has no in-place edit primitive and uses ordinary file tools (Read/Edit) on the vault path. Does not rebuild the note via create/overwrite or append.",
+      "files": [],
+      "assertions": [
+        "Fixed the typo with ordinary file tools on the vault path rather than obsidian create/append/prepend",
+        "'seperate' is gone from Forgotten Idea.md and 'separate' is present",
+        "The rest of the note is byte-identical apart from that one word",
+        "Did not rebuild or overwrite the note wholesale"
+      ]
+    }
+  ]
+}
