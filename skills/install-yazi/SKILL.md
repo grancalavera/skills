@@ -25,11 +25,36 @@ Homebrew.
 5. **Show hidden files.** The script configures yazi to show hidden files by default. It
    keeps the user's existing yazi settings intact, and leaves the config untouched when
    hidden files are already shown.
-6. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
+6. **Add a key to maximize the preview pane.** yazi has no built-in key for this, so the
+   script installs the official `toggle-pane` plugin with
+   `ya pkg add yazi-rs/plugins:toggle-pane`. It skips the install if the plugin is
+   already there. It then binds `T` in `~/.config/yazi/keymap.toml`:
+
+   ```toml
+   [[mgr.prepend_keymap]]
+   on   = "T"
+   run  = "plugin toggle-pane max-preview"
+   desc = "Maximize or restore the preview pane"
+   ```
+
+   The script adds this entry only if no `T` binding for `toggle-pane` exists yet, and
+   keeps the rest of the keymap intact. Homebrew installs the current yazi, so target the
+   current `ya pkg` command and `[[mgr.prepend_keymap]]` table, not the older
+   `ya pack -a` and `[[manager.prepend_keymap]]` forms. In the follow-ups, tell the user
+   that `T` toggles the preview between full screen and normal, and that `max-current`
+   or `max-parent` maximize the other panes instead.
+7. **Verify and point out follow-ups.** The script ends by confirming yazi runs and
    reporting its version. It then tells the user about any setup the docs recommend that
    the script can't do for them.
-7. **Hand over the script.** When the script is written, show the user the command to
+8. **Hand over the script.** When the script is written, show the user the command to
    open it in `bat`, and copy that command to the clipboard.
+
+## Invariant
+
+The skill stays idempotent. Any requirement added to this skill must keep the script
+safe to rerun: a second run installs, upgrades, and writes nothing new, duplicates no
+config entries, and reports each step as already done. If a new requirement would break
+this, change the requirement, not the invariant.
 
 ## Rules for the script
 
@@ -45,6 +70,8 @@ The script installs any tool it relies on before first using it.
 - Run on its own, the script leaves yazi and every dependency installed and up to date,
   confirms yazi runs, reports its version, and lists any manual follow-ups.
 - yazi shows hidden files by default, and the user's other yazi settings are unchanged.
+- The `toggle-pane` plugin is installed, and `T` maximizes or restores the preview pane
+  through exactly one keymap entry.
 - Run a second time, it changes nothing and reports each step as already done.
 - The user has seen the `bat` command for the script, and that command is on their
   clipboard.
