@@ -22,7 +22,7 @@ Homebrew.
    check its state. Install it if it's missing, upgrade it if it's outdated, and leave it
    alone if it's current. Say which case applied. Upgrade only these packages, not
    everything else the user has installed. Besides the docs' list, the script installs
-   `glow` and `bat` (Homebrew formulae of the same names): requirements 7 and 8 use them.
+   `glow` and `bat` (Homebrew formulae of the same names): requirement 8 uses them.
 5. **Show hidden files.** The script configures yazi to show hidden files by default. It
    keeps the user's existing yazi settings intact, and leaves the config untouched when
    hidden files are already shown.
@@ -51,9 +51,12 @@ Homebrew.
    `[[manager.prepend_keymap]]` forms. In the follow-ups, tell the user that `e` (or the
    key they already had) toggles the preview between full screen and normal, and that
    `max-current` or `max-parent` maximize the other panes instead.
-7. **Preview Markdown with glow.** The script installs the official `piper` plugin with
-   `ya pkg add yazi-rs/plugins:piper`, not the deprecated `Reledia/glow.yazi`. It then
-   adds this previewer to `~/.config/yazi/yazi.toml`:
+7. **Preview Markdown with yazi's built-in previewer.** The script adds no Markdown
+   previewer. yazi's built-in code previewer renders `.md` and `.markdown` in the preview
+   pane, as it does other text.
+
+   Migration: an earlier version of this script added this exact entry to
+   `~/.config/yazi/yazi.toml`:
 
    ```toml
    [[plugin.prepend_previewers]]
@@ -61,29 +64,30 @@ Homebrew.
    run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
    ```
 
-   - Match on `url`, not `mime`: `file` reports Markdown as `text/plain`.
-   - `-s=dark` sets the style, because glow can't detect the terminal background inside
-     the pane. `$w` sizes glow to the pane. `CLICOLOR_FORCE=1` forces colour, because
-     glow runs outside a tty there.
-   - `prepend_previewers` puts the rule ahead of yazi's built-in code previewer, so it
-     wins for Markdown and changes nothing else.
+   - When `yazi.toml` holds that exact entry, the script removes it and reports the
+     migration.
+   - Only an exact match counts as the script's own. The script leaves any other Markdown
+     previewer alone, and reports it.
+   - The script no longer installs the `piper` plugin. When `package.toml` already lists
+     `yazi-rs/plugins:piper`, the script leaves it installed: it never removes packages,
+     and the user may use `piper` elsewhere.
 
-   Idempotency: skip `ya pkg add` when `~/.config/yazi/package.toml` already lists
-   `yazi-rs/plugins:piper`. Add the previewer only when no `prepend_previewers` entry
-   matches `*.md`. When the user already previews Markdown with something else, leave it
-   and report it. Keep every other `[plugin]` entry intact.
-8. **Open text files with bat, but not Markdown.** The script adds a `pager` opener and
-   these open rules to `~/.config/yazi/yazi.toml`:
+   Keep every other `[plugin]` entry intact.
+8. **Open text files with bat, and Markdown with glow.** The script adds a `pager` opener,
+   a `markdown` opener, and these open rules to `~/.config/yazi/yazi.toml`:
 
    ```toml
    [opener]
    pager = [
      { run = "bat --paging=always --pager='less -R' %s", block = true, desc = "bat", for = "unix" },
    ]
+   markdown = [
+     { run = "glow -p %s", block = true, desc = "glow", for = "unix" },
+   ]
 
    [open]
    prepend_rules = [
-     { url = "*.{md,markdown}", use = [ "edit", "reveal" ] },
+     { url = "*.{md,markdown}", use = [ "markdown", "edit", "reveal" ] },
      { mime = "text/*", use = [ "pager", "edit", "reveal" ] },
      { mime = "application/{json,ndjson,toml,yaml,xml,javascript,typescript,sql}", use = [ "pager", "edit", "reveal" ] },
      { mime = "inode/empty", use = [ "pager", "edit", "reveal" ] },
@@ -91,21 +95,28 @@ Homebrew.
    ```
 
    - yazi uses the first matching rule. The Markdown rule must come first, ahead of
-     `text/*`, so Enter on `.md` skips `bat`.
-   - `edit` and `reveal` are yazi's built-in openers, and yazi's default config uses
-     `[ "edit", "reveal" ]` for text. Enter on `.md` therefore opens `$EDITOR`, as in
-     stock yazi. Add no `markdown` opener.
+     `text/*`, so Enter on `.md` opens glow instead of `bat`. Match on `url`, not `mime`:
+     `file` reports Markdown as `text/plain`.
+   - `glow -p` renders the file in glow's pager (`$PAGER`, `less -r` by default), the way
+     `bat` pages other text. `edit` and `reveal` stay in the open menu, so `$EDITOR` is
+     one keypress away.
 
-   Idempotency: add the `pager` opener only when `[opener]` has no `pager` key. Add each
+   Idempotency: add each opener only when `[opener]` has no key of that name. Add each
    `mime` rule only when no rule with the same `mime` exists. Add the Markdown rule, at
-   the top of `prepend_rules`, only when no rule's `url` matches `*.md`. When the user
-   already routes `*.md` elsewhere, leave it and print a notice. Insert new `mime` rules
-   right after the Markdown rule, the script's or the user's, so `text/*` never shadows
-   it. Check the result with yazi's first-match order before writing. Keep every other
-   `[opener]` and `[open]` entry intact.
+   the top of `prepend_rules`, only when no rule's `url` matches `*.md`. Insert new `mime`
+   rules right after the Markdown rule, the script's or the user's, so `text/*` never
+   shadows it. Check the result with yazi's first-match order before writing. Keep every
+   other `[opener]` and `[open]` entry intact.
 
-   In the follow-ups, tell the user that the preview pane now renders Markdown with
-   glow, that text files open in `bat`, and that Markdown still opens in `$EDITOR`.
+   Migration: when the first Markdown rule is exactly
+   `{ url = "*.{md,markdown}", use = [ "edit", "reveal" ] }`, which an earlier version of
+   this script wrote, replace it in place with the glow rule and report the migration.
+   Any other rule whose `url` matches `*.md` belongs to the user: leave it and print a
+   notice.
+
+   In the follow-ups, tell the user that the preview pane renders Markdown with yazi's
+   built-in previewer, that Enter on Markdown opens glow, and that other text files open
+   in `bat`.
 9. **Add the `y` shell wrapper.** Take yazi's documented `y` wrapper (it changes the
    shell's directory to yazi's on exit) from the docs, and add one change: yazi starts
    with a client ID derived from the terminal's tty, so the `yazi` skill can find and
@@ -152,10 +163,10 @@ The script installs any tool it relies on before first using it.
 - yazi shows hidden files by default, and the user's other yazi settings are unchanged.
 - The `toggle-pane` plugin is installed, and `e` (or the key the user already had)
   maximizes or restores the preview pane through exactly one keymap entry.
-- Hovering a `.md` or `.markdown` file shows glow-rendered Markdown in the preview pane,
-  through exactly one `prepend_previewers` entry.
-- Enter on a `.md` file opens `$EDITOR`. Enter on other text, JSON/TOML and empty files
-  opens `bat`. `yazi.toml` holds no duplicate opener or open rule.
+- Hovering a `.md` or `.markdown` file shows yazi's built-in preview. `yazi.toml` holds no
+  glow or `piper` previewer entry from the script.
+- Enter on a `.md` or `.markdown` file opens glow. Enter on other text, JSON/TOML and
+  empty files opens `bat`. `yazi.toml` holds no duplicate opener or open rule.
 - The shell rc file holds exactly one `y` wrapper block, starting yazi with the
   tty-derived client ID, unless the user already had their own `y`.
 - Run a second time, it changes nothing and reports each step as already done.
