@@ -16,15 +16,15 @@ stateDiagram-v2
     CheckRunning --> CheckTerminal: not running
     AlreadyRunning --> [*]: "Dispatcher already running."
 
-    CheckTerminal --> GhosttySplit: TERM_PROGRAM is ghostty
+    CheckTerminal --> GhosttyOpen: TERM_PROGRAM is ghostty
     CheckTerminal --> ManualSteps: other terminal
-    GhosttySplit --> Started: script exits 0
-    GhosttySplit --> ManualSteps: script fails, report error
+    GhosttyOpen --> Started: script exits 0
+    GhosttyOpen --> ManualSteps: script fails, report error
     Started --> [*]: "Dispatcher started."
     ManualSteps --> [*]: user launches, agent refuses
 
-    GhosttySplit: Open split (default down)
-    GhosttySplit: DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'
+    GhosttyOpen: Open new window (default) or split
+    GhosttyOpen: DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'
 
     state RouterLoop {
         [*] --> Waiting
