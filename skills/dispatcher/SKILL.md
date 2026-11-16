@@ -26,10 +26,10 @@ The dispatcher runs as its own long-lived Claude Code session, started in the sa
 **In Ghostty** (`$TERM_PROGRAM` is `ghostty`), run the script beside this file:
 
 ```bash
-scripts/open-ghostty-split.sh [left|right|up|down] [directory]
+scripts/open-ghostty.sh [window|left|right|up|down] [directory]
 ```
 
-It splits the focused Ghostty terminal and starts `DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'` in the new pane. Pass the direction the user named (top = up, bottom = down); with none named, pass `down`. Pass this session's starting directory. Done when the script exits 0; reply "Dispatcher started." It needs Ghostty 1.3+ on macOS; on any other exit, report the error and fall through to the manual steps.
+It opens a new Ghostty window by default and starts `DISPATCHER_SESSION=1 claude -n dispatcher 'be the dispatcher'` in it. It splits the focused terminal instead only when the user names a direction: pass that direction (top = up, bottom = down). Pass this session's starting directory. A running dispatcher can't move from a split to a window; to switch, the user stops it and starts a new one. Done when the script exits 0; reply "Dispatcher started." It needs Ghostty 1.3+ on macOS; on any other exit, report the error and fall through to the manual steps.
 
 **Outside Ghostty**, the user starts the dispatcher by hand. Give them these steps and leave the launch to them, even if they ask you to do it:
 
